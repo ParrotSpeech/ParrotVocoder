@@ -1,7 +1,7 @@
 [project]
 name = "parrotvocoder"
 version = "0.1.0"
-description = "Add your description here"
+description = "Vocoder of parrotspeech"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
