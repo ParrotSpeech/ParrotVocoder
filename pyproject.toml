@@ -1,0 +1,20 @@
+[project]
+name = "parrotvocoder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "torch",
+    "numpy",
+    "librosa",
+    "scipy",
+    "tensorboard",
+    "soundfile",
+    "matplotlib",
+    "onnx",
+    "torchaudio",
+    "matplotlib",
+    "onnxruntime",
+    "onnxruntime-gpu",
+]
