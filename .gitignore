@@ -145,3 +145,6 @@ dmypy.json
 *.tar.gz
 
 parrotvocoder.egg-info/
+
+# macOS
+.DS_Store
