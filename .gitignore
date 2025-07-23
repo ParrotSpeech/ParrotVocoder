@@ -137,7 +137,7 @@ dmypy.json
 **/.vscode
 
 # JetBrains
-.idea/
+#.idea/
 
 # Data & Models
 *.h5
