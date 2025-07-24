@@ -26,8 +26,18 @@ def train(rank, a, h):
         init_process_group(backend=h.dist_config['dist_backend'], init_method=h.dist_config['dist_url'],
                            world_size=h.dist_config['world_size'] * h.num_gpus, rank=rank)
 
-    torch.cuda.manual_seed(h.seed)
-    device = torch.device('cuda:{:d}'.format(rank))
+    torch.manual_seed(h.seed)
+    # Use MPS for Apple Silicon, CUDA for NVIDIA GPUs, or CPU as fallback
+    if torch.backends.mps.is_available() and h.num_gpus == 0:
+        device = torch.device('mps')
+        print("Using Apple MPS device")
+    elif torch.cuda.is_available() and h.num_gpus > 0:
+        torch.cuda.manual_seed(h.seed)
+        device = torch.device('cuda:{:d}'.format(rank))
+        print(f"Using CUDA device: {device}")
+    else:
+        device = torch.device('cpu')
+        print("Using CPU device")
 
     generator = Generator(h).to(device)
     mpd = MultiPeriodDiscriminator().to(device)
@@ -186,7 +196,10 @@ def train(rank, a, h):
                 # Validation
                 if steps % a.validation_interval == 0:  # and steps != 0:
                     generator.eval()
-                    torch.cuda.empty_cache()
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    elif torch.backends.mps.is_available():
+                        torch.mps.empty_cache()
                     val_err_tot = 0
                     with torch.no_grad():
                         for j, batch in enumerate(validation_loader):
@@ -258,8 +271,12 @@ def main():
         h.num_gpus = torch.cuda.device_count()
         h.batch_size = int(h.batch_size / h.num_gpus)
         print('Batch size per GPU :', h.batch_size)
+    elif torch.backends.mps.is_available():
+        print('Using Apple MPS for acceleration')
+        h.num_gpus = 0  # Set to 0 for MPS usage
     else:
-        pass
+        print('Using CPU only')
+        h.num_gpus = 0
 
     if h.num_gpus > 1:
         mp.spawn(train, nprocs=h.num_gpus, args=(a, h,))
